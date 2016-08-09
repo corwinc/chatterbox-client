@@ -7,7 +7,9 @@ String.prototype.replaceAll = function(search, replacement) {
 
 var app = {
   server: 'https://api.parse.com/1/classes/messages',
-  messages: []
+  messages: [],
+  roomnames: [],
+  currRoom: false
 };
 
 var message = {
@@ -51,17 +53,23 @@ app.fetch = function() {
 
 app.filterText = function(text) {
   var r = new RegExp('&|<|>|"|\'|`|!|@|\\$|%|\\(|\\)|=|\\+|{|}|\\[|\\\\|\\]', 'g');
-  text = text.replace(r, '');
+  if (text !== null) {
+    text = text.replace(r, '');
+  }
+
   return text;
 };
 
 app.recieve = function (data) {
 	console.log(data);
   $('#chats').empty();
-  data.results.forEach((el) => {
+  var roomnames = data.results.map((el) => {
     var filtered = app.filterReceivedObject(el);
-    app.addMessage(filtered);
+    if (filtered.roomname === app.currRoom) app.addMessage(filtered);
+    else if (!app.currRoom) app.addMessage(filtered);
+    return filtered.roomname;
   });
+  app.setRoomDropDown(roomnames);
 };
 
 app.filterReceivedObject = function (rObject) {
@@ -101,14 +109,34 @@ app.addMessage = function(message) {
   $('#chats').append($span);
 };
 
-
-
 app.clearMessages = function () {
   $('#chats').empty();
 };
 
 app.addRoom = function(roomName) {
   $('#roomSelect').append(`<option value='${roomName}'>${roomName}</option>`);
+};
+
+app.setRoomDropDown = function(roomnames) {
+  //given mesages,
+  roomnames = _.uniq(roomnames);
+  //if we have a roomname that isn't in the dropdown, add it to the dropdown
+  roomnames.forEach(function (e) {
+    if (!app.roomnames.includes(e)) {
+      app.roomnames.push(e);
+      app.addRoom(e);
+    }
+  });
+};
+
+app.handleDropdown = function (e) {
+  var val = $('#roomSelect').val();
+  if (val === 'CreateARoom') {
+    val = prompt('Create a new room.');
+    app.addRoom(val);
+    $(`select option:contains('${val}')`).attr('selected', true);
+  }
+  app.currRoom = val;
 };
 
 //##TODO## add roomname support to message sending
@@ -123,11 +151,13 @@ app.init = function () {
     var message = {
       username: window.location.search.replace('username=', ""),
       text: message,
-      roomname: '4chan'
+      roomname: app.currRoom
     };
     app.send(message);
   });
   $('#form').append($ourButton);
+  $('#roomSelect').append('<option value="CreateARoom">Create a room</option>');
+  $('#roomSelect').change(app.handleDropdown);
 
 };
 
