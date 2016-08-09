@@ -4,6 +4,9 @@ body {
     padding: 0 25px;
     font-family: arial, sans-serif;
 }
+.friend {
+    font-weight: bold;
+}
 
 #main, #chats {
     width: 500px;
@@ -59,6 +62,11 @@ form input[type=text] {
     padding: 5px;
 }
 
+form input[type=button] {   
+    width: 10%;
+    font-size: 12px; 
+}
+
 .chat {
     padding: 5px;
     margin-bottom: 5px;
@@ -84,7 +92,6 @@ form input[type=text] {
 }
 
 .friend {
-    color: #fff;
-    background-color: #0090da;
+    color: #1D7CF2;
 }
 
